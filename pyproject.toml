@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "slot-engine"
+version = "0.1.0"
+description = "Minimalist slot engine"
+readme = "README.md"
+requires-python = ">=3.14"
+authors = [
+    { name = "Ivan Garcia Solera", email= "igstrabajo2002@gmail.com" },
+]
+license = "MIT"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "pytest>=8.3.0",
+    "pytest-cov>=6.0.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/slot_engine"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes (unused imports, undefined names, etc.)
+    "I",    # isort (orden de imports)
+    "N",    # pep8-naming (nombres de clases, funciones, variables)
+    "UP",   # pyupgrade (sintaxis moderna)
+    "B",    # flake8-bugbear (bugs sutiles comunes)
+    "C4",   # flake8-comprehensions (comprensiones más claras)
+    "SIM",  # flake8-simplify (simplificaciones)
+    "RUF",  # reglas propias de ruff
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+warn_unreachable = true
+show_error_codes = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--strict-config",
+]
+
