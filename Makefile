@@ -11,7 +11,7 @@ IMAGE_PROD := slot-engine:latest
 # Objetivo por defecto: mostrar ayuda
 .DEFAULT_GOAL := help
 
-.PHONY: help build build-prod shell test lint format typecheck check clean
+.PHONY: help build build-prod shell test lint format typecheck check clean fix
 
 help:  ## Muestra esta ayuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -45,3 +45,7 @@ clean:  ## Elimina caches y contenedores huérfanos
 	docker image rm -f $(IMAGE_DEV) $(IMAGE_PROD) 2>/dev/null || true
 	find . -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
 	rm -rf .pytest_cache .ruff_cache .mypy_cache build dist *.egg-info
+
+fix:  ## Aplica fixes automáticos de ruff
+	$(DEV) ruff check . --fix
+	$(DEV) ruff format .
