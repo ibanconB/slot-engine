@@ -38,7 +38,7 @@ format:  ## Aplica formato con ruff
 typecheck:  ## Verifica tipos con mypy
 	$(DEV) mypy src
 
-check: lint typecheck test  ## Ejecuta lint + typecheck + test (todo lo que hace CI)
+check: lint typecheck test  ## Ejecuta lint + typecheck + test (lo que hace CI)
 
 clean:  ## Elimina caches y contenedores huérfanos
 	$(COMPOSE) down --remove-orphans
