@@ -1,0 +1,13 @@
+services:
+  dev:
+    build:
+      context: .
+      target: dev
+    image: slot-engine:dev
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./pyproject.toml:/app/pyproject.toml
+    working_dir: /app
+    tty: true
+    stdin_open: true
