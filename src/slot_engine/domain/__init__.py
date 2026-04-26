@@ -2,6 +2,7 @@
 
 from slot_engine.domain.paytable import Paytable
 from slot_engine.domain.reel import Reel
+from slot_engine.domain.spin_result import SpinResult
 from slot_engine.domain.symbol import Symbol
 
-__all__ = ["Paytable", "Reel", "Symbol"]
+__all__ = ["Paytable", "Reel", "SpinResult", "Symbol"]

@@ -21,7 +21,7 @@ class Reel:
             raise ValueError("Reel strip cannot be empty")
 
     @classmethod
-    def from_symbol(cls, symbols: Iterable[Symbol]) -> Reel:
+    def from_symbols(cls, symbols: Iterable[Symbol]) -> Reel:
         """Create Reel from symbol iterables"""
         return cls(tuple(symbols))
 

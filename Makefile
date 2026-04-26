@@ -11,7 +11,7 @@ IMAGE_PROD := slot-engine:latest
 # Objetivo por defecto: mostrar ayuda
 .DEFAULT_GOAL := help
 
-.PHONY: help build build-prod shell test lint format typecheck check clean fix
+.PHONY: help build build-prod shell test lint format typecheck check clean fix demo
 
 help:  ## Muestra esta ayuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -49,3 +49,6 @@ clean:  ## Elimina caches y contenedores huérfanos
 fix:  ## Aplica fixes automáticos de ruff
 	$(DEV) ruff check . --fix
 	$(DEV) ruff format .
+
+demo:
+	$(DEV) python scripts/demo.py

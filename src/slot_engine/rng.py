@@ -22,7 +22,7 @@ class RandomNumberGenerator(Protocol):
         ...
 
 
-class SecureRNG:
+class SecureRng:
     """Production RNG bases in `secrets"""
 
     def randrange(self, stop: int) -> int:
