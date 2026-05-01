@@ -28,7 +28,7 @@ class LineWin:
     payout: Decimal
 
     def __post_init__(self) -> None:
-        if self.count >= 0:
+        if self.count <= 0:
             raise ValueError("LineWin count must be positive")
         if self.count > self.payline.length:
             raise ValueError(
