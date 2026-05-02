@@ -12,7 +12,9 @@ authors = [
     { name = "Ivan Garcia Solera", email= "igstrabajo2002@gmail.com" },
 ]
 license = "MIT"
-dependencies = []
+dependencies = [
+    "pydantic>=2.0"
+]
 
 [project.optional-dependencies]
 dev = [

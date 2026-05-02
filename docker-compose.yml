@@ -8,6 +8,7 @@ services:
       - ./src:/app/src
       - ./tests:/app/tests
       - ./scripts:/app/scripts
+      - ./games:/app/games
       - ./pyproject.toml:/app/pyproject.toml
     working_dir: /app
     tty: true
