@@ -51,4 +51,4 @@ fix:  ## Aplica fixes automáticos de ruff
 	$(DEV) ruff format .
 
 demo:
-	$(DEV) python scripts/demo.py
+	docker compose run --rm dev slot-engine play lucky_sevens --seed 42

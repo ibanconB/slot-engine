@@ -13,7 +13,8 @@ authors = [
 ]
 license = "MIT"
 dependencies = [
-    "pydantic>=2.0"
+    "pydantic>=2.0",
+    "typer>=0.12",
 ]
 
 [project.optional-dependencies]
@@ -63,4 +64,7 @@ addopts = [
     "--strict-markers",
     "--strict-config",
 ]
+
+[project.scripts]
+slot-engine = "slot_engine.cli:app"
 
