@@ -52,3 +52,6 @@ fix:  ## Aplica fixes automáticos de ruff
 
 demo:
 	docker compose run --rm dev slot-engine play lucky_sevens --seed 42
+
+test:
+	docker compose run --rm dev pytest -v
