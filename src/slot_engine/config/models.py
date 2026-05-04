@@ -19,6 +19,7 @@ class GameMeta(StrictModel):
     """Game Metadata"""
 
     name: str = Field(min_length=1)
+    engine: str = Field(min_length=1)
     window_size: int = Field(ge=1)
 
 

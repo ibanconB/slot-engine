@@ -96,17 +96,17 @@ def inspect(game: str) -> None:
 
 @app.command()
 def play(
-        game: str,
-        seed: Annotated[
-            int | None,
-            typer.Option(help="Optional seed for reproducible spin")
-        ] = None,
+    game: str,
+    seed: Annotated[
+        int | None,
+        typer.Option(help="Optional seed for reproducible spins."),
+    ] = None,
 ) -> None:
-    """Run a single spin of a choosen game"""
+    """Run a single spin of the chosen game."""
     path = GAMES_DIR / f"{game}.toml"
     if not path.exists():
         typer.echo(f"Game not found: {game}", err=True)
-        typer.echo("Use 'slot-engine list-games' to see available games.")
+        typer.echo("Use 'slot-engine list-games' to see available games.", err=True)
         raise typer.Exit(code=1)
 
     config = load_game_config(path)
@@ -117,32 +117,30 @@ def play(
         rng_label = f"seeded ({seed})"
     else:
         rng = SecureRng()
-        rng_label = f"secure (random)"
+        rng_label = "secure (random)"
 
-    engine = SpinEngine(reels=g.reels, window_size=g.window_size, rng=rng)
-    evaluator = Evaluator(paylines=g.paylines, paytable=g.paytable)
+    engine = g.create_engine(rng)
+    result = engine.play()
 
-    result = engine.spin()
-    evaluation = evaluator.evaluate(result)
+    typer.echo(f"=== {g.name} | engine={g.engine_name} | rng={rng_label} ===\n")
 
-    typer.echo(f"=== {g.name} | {rng_label} ===\n")
-    typer.echo(f"Spin window:")
-    num_rows = len(result.columns[0])
+    typer.echo("Spin window:")
+    num_rows = len(result.spin.columns[0])
     for row_idx in range(num_rows):
-        row = [col[row_idx] for col in result.columns]
+        row = [col[row_idx] for col in result.spin.columns]
         typer.echo("  " + " | ".join(s.name for s in row))
 
     typer.echo("\nResult:")
-    if not evaluation.is_winning:
+    if not result.evaluation.is_winning:
         typer.echo("  (no wins)")
         return
 
-    for win in evaluation.wins:
+    for win in result.evaluation.wins:
         typer.echo(
             f"  {win.payline.name:<10} {win.symbol.name} x{win.count} "
             f"-> {win.payout}"
         )
-    typer.echo(f"  TOTAL: {evaluation.total_payout}")
+    typer.echo(f"  TOTAL: {result.evaluation.total_payout}")
 
 if __name__ == "__main__":
     app()
