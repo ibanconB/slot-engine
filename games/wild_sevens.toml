@@ -1,0 +1,80 @@
+[game]
+name = "Wild Sevens"
+engine = "wild_sevens"
+window_size = 3
+
+[symbols.cherry]
+is_wild = false
+is_scatter = false
+
+[symbols.lemon]
+is_wild = false
+is_scatter = false
+
+[symbols.bell]
+is_wild = false
+is_scatter = false
+
+[symbols.bar]
+is_wild = false
+is_scatter = false
+
+[symbols.seven]
+is_wild = false
+is_scatter = false
+
+[symbols.joker]
+is_wild = true
+is_scatter = false
+
+[[reels]]
+strip = ["cherry", "lemon", "bell", "cherry", "joker", "bar", "seven", "cherry", "lemon", "bell"]
+
+[[reels]]
+strip = ["lemon", "bell", "cherry", "joker", "bar", "bell", "cherry", "lemon", "seven", "bell"]
+
+[[reels]]
+strip = ["bell", "cherry", "lemon", "bell", "seven", "cherry", "joker", "bar", "bell", "cherry"]
+
+[[reels]]
+strip = ["cherry", "bell", "joker", "cherry", "bar", "lemon", "bell", "seven", "cherry", "lemon"]
+
+[[reels]]
+strip = ["lemon", "cherry", "bell", "joker", "seven", "bell", "cherry", "lemon", "bar", "bell"]
+
+[paytable.cherry]
+"3" = "1.00"
+"4" = "3.00"
+"5" = "14.00"
+
+[paytable.lemon]
+"3" = "1.00"
+"4" = "6.00"
+"5" = "32.00"
+
+[paytable.bell]
+"3" = "3.00"
+"4" = "15.00"
+"5" = "80.00"
+
+[paytable.bar]
+"3" = "7.00"
+"4" = "30.00"
+"5" = "144.00"
+
+[paytable.seven]
+"3" = "18.00"
+"4" = "70.00"
+"5" = "900.00"
+
+[[paylines]]
+name = "top"
+rows = [0, 0, 0, 0, 0]
+
+[[paylines]]
+name = "middle"
+rows = [1, 1, 1, 1, 1]
+
+[[paylines]]
+name = "bottom"
+rows = [2, 2, 2, 2, 2]
