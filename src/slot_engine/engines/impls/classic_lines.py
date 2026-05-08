@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from slot_engine.domain.play_result import PlayResult
+from slot_engine.domain.play_result import PlayResult, PlayStep
 from slot_engine.engine import SpinEngine
 from slot_engine.engines.registry import register_engine
 from slot_engine.evaluator import Evaluator
@@ -37,4 +37,5 @@ class ClassicLinesEngine:
         )
         spin = spin_engine.spin()
         evaluation = evaluator.evaluate(spin)
-        return PlayResult(spin=spin, evaluation=evaluation)
+        step = PlayStep(spin=spin, evaluation=evaluation, multiplier=1)
+        return PlayResult(steps=(step,))

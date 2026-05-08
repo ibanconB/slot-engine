@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class StrictModel(BaseModel):
@@ -51,3 +51,21 @@ class GameConfig(StrictModel):
     reels: tuple[ReelConfig, ...] = Field(min_length=1)
     paytable: dict[str, dict[int, Decimal]]
     paylines: tuple[PaylineConfig, ...] = Field(min_length=1)
+    cascade: CascadeConfig | None = None
+
+class CascadeConfig(StrictModel):
+    """Cascade rules: multiplier values per cascade step.
+
+    Step 0 uses multipliers[0], step 1 uses multipliers[1], etc.
+    Engines decide overflow policy when cascade exceeds list length
+    (typically clamp to last value).
+    """
+
+    multipliers: tuple[int, ...] = Field(min_length=1)
+
+    @field_validator("multipliers")
+    @classmethod
+    def all_positive(cls, v: tuple[int, ...]) -> tuple[int, ...]:
+        if any(m <= 0 for m in v):
+            raise ValueError("All multipliers must be positive integers")
+        return v

@@ -34,7 +34,7 @@ class Simulator:
 
         for _ in range(num_spins):
             result = engine.play()
-            payout = result.evaluation.total_payout
+            payout = result.total_payout
             total_payout += payout
             if payout > 0:
                 num_winning_spins += 1

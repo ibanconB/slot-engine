@@ -7,7 +7,7 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING
 
 from slot_engine.config import GameConfig
-from slot_engine.domain import Payline, Paytable, Reel, Symbol
+from slot_engine.domain import CascadeRules,Payline, Paytable, Reel, Symbol
 from slot_engine.rng import RandomNumberGenerator
 
 if TYPE_CHECKING:
@@ -33,6 +33,7 @@ class Game:
     paytable: Paytable
     paylines: tuple[Payline, ...]
     symbols: Mapping[str, Symbol]
+    cascade: CascadeRules | None = None
 
     @classmethod
     def from_config(cls, config: GameConfig) -> Game:
@@ -63,6 +64,12 @@ class Game:
             Payline(name=p.name, rows=p.rows) for p in config.paylines
         )
 
+        cascade_rules = (
+            CascadeRules(multipliers=tuple(config.cascade.multipliers))
+            if config.cascade is not None
+            else None
+        )
+
         return cls(
             name=config.game.name,
             engine_name=config.game.engine,
@@ -71,6 +78,7 @@ class Game:
             paytable=paytable,
             paylines=paylines,
             symbols=MappingProxyType(symbols),
+            cascade=cascade_rules,
         )
 
     def create_engine(self, rng: RandomNumberGenerator) -> GameEngine:

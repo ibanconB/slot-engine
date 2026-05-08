@@ -5,6 +5,8 @@ from pathlib import Path
 from sys import path
 
 import typer
+import secrets
+import statistics
 
 from typing import Annotated
 
@@ -14,6 +16,7 @@ from slot_engine.evaluator import Evaluator
 from slot_engine.rng import SecureRng, SeededRng
 from slot_engine.config import load_game_config
 from slot_engine.game import Game
+from slot_engine.simulation import Simulator
 
 GAMES_DIR = Path("games")
 
@@ -93,7 +96,6 @@ def inspect(game: str) -> None:
     for p in g.paylines:
         typer.echo(f"  {p.name:<10} rows={list(p.rows)}")
 
-
 @app.command()
 def play(
     game: str,
@@ -102,7 +104,7 @@ def play(
         typer.Option(help="Optional seed for reproducible spins."),
     ] = None,
 ) -> None:
-    """Run a single spin of the chosen game."""
+    """Run a single play (one spin or full cascade) of the chosen game."""
     path = GAMES_DIR / f"{game}.toml"
     if not path.exists():
         typer.echo(f"Game not found: {game}", err=True)
@@ -112,35 +114,164 @@ def play(
     config = load_game_config(path)
     g = Game.from_config(config)
 
-    if seed is not None:
-        rng = SeededRng(seed=seed)
-        rng_label = f"seeded ({seed})"
+    if seed is None:
+        seed = secrets.randbelow(1_000_000)
+        seed_label = f"seed={seed} (random)"
     else:
-        rng = SecureRng()
-        rng_label = "secure (random)"
+        seed_label = f"seed={seed}"
+
+    rng = SeededRng(seed=seed)
 
     engine = g.create_engine(rng)
     result = engine.play()
 
-    typer.echo(f"=== {g.name} | engine={g.engine_name} | rng={rng_label} ===\n")
+    typer.echo(f"=== {g.name} | engine={g.engine_name} | rng={seed_label} ===")
 
-    typer.echo("Spin window:")
-    num_rows = len(result.spin.columns[0])
-    for row_idx in range(num_rows):
-        row = [col[row_idx] for col in result.spin.columns]
-        typer.echo("  " + " | ".join(s.name for s in row))
+    for step_idx, step in enumerate(result.steps):
+        header = "Initial spin" if step_idx == 0 else f"Cascade step {step_idx}"
+        typer.echo(f"\n[{header}] (multiplier x{step.multiplier})")
 
-    typer.echo("\nResult:")
-    if not result.evaluation.is_winning:
-        typer.echo("  (no wins)")
-        return
+        num_rows = len(step.spin.columns[0])
+        for row_idx in range(num_rows):
+            row = [col[row_idx] for col in step.spin.columns]
+            typer.echo("  " + " | ".join(s.name for s in row))
 
-    for win in result.evaluation.wins:
+        if not step.evaluation.is_winning:
+            typer.echo("  (no wins)")
+            continue
+
+        for win in step.evaluation.wins:
+            base = win.payout
+            applied = base * step.multiplier
+            typer.echo(
+                f"  {win.payline.name:<10} {win.symbol.name} x{win.count} "
+                f"-> {base} × {step.multiplier} = {applied}"
+            )
+
+    typer.echo(f"\nTOTAL: {result.total_payout}")
+
+
+
+@app.command()
+def simulate(
+    game: str,
+    spins: Annotated[
+        int,
+        typer.Option(help="Number of plays to simulate per run."),
+    ] = 100_000,
+    seed: Annotated[
+        int | None,
+        typer.Option(help="Single deterministic seed. Mutually exclusive with --seeds and --secure."),
+    ] = None,
+    seeds: Annotated[
+        int | None,
+        typer.Option(help="Run N independent simulations (random seeds). Mutually exclusive with --seed."),
+    ] = None,
+    secure: Annotated[
+        bool,
+        typer.Option(help="Use SecureRng (production-grade, non-reproducible). For final validation before certification."),
+    ] = False,
+) -> None:
+    """Simulate plays and report RTP, hit rate, and max win.
+
+    Examples:
+      slot-engine simulate sweet_cascade
+      slot-engine simulate sweet_cascade --seed 42 --spins 1000000
+      slot-engine simulate sweet_cascade --seeds 5 --spins 1000000
+      slot-engine simulate sweet_cascade --secure --spins 1000000
+      slot-engine simulate sweet_cascade --secure --seeds 5 --spins 1000000
+    """
+    if secure and seed is not None:
         typer.echo(
-            f"  {win.payline.name:<10} {win.symbol.name} x{win.count} "
-            f"-> {win.payout}"
+            "Error: --secure and --seed are mutually exclusive "
+            "(SecureRng has no seed concept).",
+            err=True,
         )
-    typer.echo(f"  TOTAL: {result.evaluation.total_payout}")
+        raise typer.Exit(code=1)
+
+    if seed is not None and seeds is not None:
+        typer.echo("Error: --seed and --seeds are mutually exclusive.", err=True)
+        raise typer.Exit(code=1)
+
+    if spins <= 0:
+        typer.echo(f"Error: --spins must be > 0, got {spins}.", err=True)
+        raise typer.Exit(code=1)
+
+    if seeds is not None and seeds <= 0:
+        typer.echo(f"Error: --seeds must be > 0, got {seeds}.", err=True)
+        raise typer.Exit(code=1)
+
+    path = GAMES_DIR / f"{game}.toml"
+    if not path.exists():
+        typer.echo(f"Game not found: {game}", err=True)
+        typer.echo("Use 'slot-engine list-games' to see available games.", err=True)
+        raise typer.Exit(code=1)
+
+    config = load_game_config(path)
+    g = Game.from_config(config)
+
+    # Build the list of (rng, label) pairs to run
+    if secure:
+        n_runs = seeds if seeds is not None else 1
+        runs = [(SecureRng(), f"run #{i+1}") for i in range(n_runs)]
+    elif seed is not None:
+        runs = [(SeededRng(seed=seed), f"seed={seed}")]
+    elif seeds is not None:
+        seed_list = [secrets.randbelow(1_000_000) for _ in range(seeds)]
+        runs = [(SeededRng(seed=s), f"seed={s}") for s in seed_list]
+    else:
+        s = secrets.randbelow(1_000_000)
+        runs = [(SeededRng(seed=s), f"seed={s} (random)")]
+
+    n = len(runs)
+
+    # Header
+    if n == 1:
+        rng_label = "rng=secure (production)" if secure else runs[0][1]
+        typer.echo(f"=== {g.name} | engine={g.engine_name} | {rng_label} ===\n")
+    else:
+        run_kind = "secure runs" if secure else "seeds"
+        typer.echo(
+            f"=== {g.name} | engine={g.engine_name} | "
+            f"{n} {run_kind} × {spins:,} plays ===\n"
+        )
+
+    # Run simulations
+    rtps: list[float] = []
+    for rng, run_label in runs:
+        sim = Simulator(game=g, rng=rng)
+        result = sim.run(num_spins=spins)
+        rtp_pct = float(result.rtp) * 100
+        hit_rate_pct = float(result.hit_rate) * 100
+        rtps.append(rtp_pct)
+
+        if n == 1:
+            typer.echo(f"  spins        : {result.num_spins:,}")
+            typer.echo(f"  total bet    : {result.total_bet}")
+            typer.echo(f"  total payout : {result.total_payout}")
+            typer.echo(f"  RTP          : {rtp_pct:.4f}%")
+            typer.echo(f"  hit rate     : {hit_rate_pct:.2f}%")
+            typer.echo(f"  max win      : {result.max_win}")
+        else:
+            label = f"{run_label:<14}"
+            typer.echo(
+                f"  {label}  RTP={rtp_pct:.4f}%  "
+                f"max_win={result.max_win}  hit_rate={hit_rate_pct:.2f}%"
+            )
+
+    # Summary for multi-run
+    if n > 1:
+        avg = sum(rtps) / n
+        std = statistics.stdev(rtps)
+        typer.echo("  ─────────────────────────────────────")
+        typer.echo(f"  Average RTP  = {avg:.4f}%")
+        typer.echo(f"  Range        = {min(rtps):.2f}% — {max(rtps):.2f}%")
+        typer.echo(f"  Std dev      = {std:.2f}pt")
+
+    # Warning when secure mode is used
+    if secure:
+        typer.echo("\n  Production-grade RNG: results NOT reproducible.")
 
 if __name__ == "__main__":
     app()
+

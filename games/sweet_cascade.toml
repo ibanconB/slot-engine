@@ -1,0 +1,71 @@
+[game]
+name = "Sweet Cascade"
+engine = "sweet_cascade"
+window_size = 3
+
+[symbols.pink]
+is_wild = false
+is_scatter = false
+
+[symbols.blue]
+is_wild = false
+is_scatter = false
+
+[symbols.yellow]
+is_wild = false
+is_scatter = false
+
+[symbols.green]
+is_wild = false
+is_scatter = false
+
+[symbols.red]
+is_wild = false
+is_scatter = false
+
+[[reels]]
+strip = ["pink", "blue", "yellow", "green", "red", "blue", "pink", "red", "green", "yellow"]
+
+[[reels]]
+strip = ["yellow", "pink", "red", "blue", "green", "pink", "yellow", "blue", "red", "green"]
+
+[[reels]]
+strip = ["red", "green", "blue", "yellow", "pink", "green", "red", "yellow", "pink", "blue"]
+
+[paytable.pink]
+"3" = "5.00"
+
+[paytable.blue]
+"3" = "10.00"
+
+[paytable.yellow]
+"3" = "14.00"
+
+[paytable.green]
+"3" = "19.00"
+
+[paytable.red]
+"3" = "28.00"
+
+[[paylines]]
+name = "top"
+rows = [0, 0, 0]
+
+[[paylines]]
+name = "middle"
+rows = [1, 1, 1]
+
+[[paylines]]
+name = "bottom"
+rows = [2, 2, 2]
+
+[[paylines]]
+name = "diag_down"
+rows = [0, 1, 2]
+
+[[paylines]]
+name = "diag_up"
+rows = [2, 1, 0]
+
+[cascade]
+multipliers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]

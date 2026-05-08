@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from slot_engine.domain.play_result import PlayResult
+from slot_engine.domain.play_result import PlayResult, PlayStep
 from slot_engine.domain.symbol import Symbol
 from slot_engine.engine import SpinEngine
 from slot_engine.engines.registry import register_engine
@@ -38,6 +38,20 @@ class WildSevensEngine:
     rng: RandomNumberGenerator
 
     def play(self) -> PlayResult:
+        spin_engine = SpinEngine(
+            reels=self.game.reels,
+            window_size=self.game.window_size,
+            rng=self.rng,
+        )
+        evaluator = Evaluator(
+            paylines=self.game.paylines,
+            paytable=self.game.paytable,
+            match=_wild_match,
+        )
+        spin = spin_engine.spin()
+        evaluation = evaluator.evaluate(spin)
+        step = PlayStep(spin=spin, evaluation=evaluation, multiplier=1)
+        return PlayResult(steps=(step,))
         spin_engine = SpinEngine(
             reels=self.game.reels,
             window_size=self.game.window_size,
