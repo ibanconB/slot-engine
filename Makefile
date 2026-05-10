@@ -55,3 +55,6 @@ demo:
 
 test:
 	docker compose run --rm dev pytest -v
+
+server:
+	docker compose run --rm -p 8000:8000 dev uvicorn slot_engine.server.app:app --host 0.0.0.0 --port 8000 --reload
