@@ -4,6 +4,7 @@ Importing this package triggers registration of all engines via
 @register_engine decorators in each module below.
 """
 from slot_engine.engines.impls import classic_lines  # noqa: F401
+from slot_engine.engines.impls import lucky_bonus 
 from slot_engine.engines.impls import sweet_cascade
 from slot_engine.engines.impls import wild_sevens
 

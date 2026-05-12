@@ -32,13 +32,23 @@ class PlayResult:
     Always has at least one PlayStep. Non-cascade games have exactly one
     step (multiplier=1). Cascade games append a step each time the cascade
     continues, with the multiplier the engine chose for that step.
+
+     `free_spins_triggered` carries the count of free spins this play
+    awards to the player (e.g. via scatter trigger). The server reads
+    this and updates the player's FS counter accordingly. Engines that
+    don't have FS leave it at 0 (default).
     """
 
     steps: tuple[PlayStep, ...]
+    free_spins_triggered: int = 0
 
     def __post_init__(self) -> None:
         if not self.steps:
             raise ValueError("PlayResult requires at least one PlayStep")
+        if self.free_spins_triggered < 0:
+            raise ValueError(
+                f"free_spins_triggered must be >= 0, got {self.free_spins_triggered}"
+            )
 
     @property
     def total_payout(self) -> Decimal:

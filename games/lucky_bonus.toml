@@ -1,0 +1,84 @@
+[game]
+name = "Lucky Bonus"
+engine = "lucky_bonus"
+window_size = 5
+
+[symbols.coin]
+is_wild = false
+is_scatter = false
+
+[symbols.gem]
+is_wild = false
+is_scatter = false
+
+[symbols.crown]
+is_wild = false
+is_scatter = false
+
+[symbols.chest]
+is_wild = false
+is_scatter = false
+
+[symbols.BONUS]
+is_wild = false
+is_scatter = true
+
+# Reel 0 — con BONUS
+[[reels]]
+strip = ["coin", "gem", "crown", "coin", "chest", "BONUS", "coin", "gem", "crown", "coin", "gem", "chest", "coin", "crown", "gem"]
+
+# Reel 1 — sin BONUS
+[[reels]]
+strip = ["gem", "coin", "crown", "coin", "gem", "chest", "coin", "crown", "gem", "coin", "chest", "gem", "crown", "coin", "coin"]
+
+# Reel 2 — con BONUS
+[[reels]]
+strip = ["crown", "coin", "gem", "BONUS", "chest", "coin", "gem", "crown", "coin", "chest", "gem", "coin", "crown", "coin", "gem"]
+
+# Reel 3 — sin BONUS
+[[reels]]
+strip = ["coin", "crown", "gem", "coin", "chest", "gem", "coin", "crown", "coin", "gem", "chest", "coin", "gem", "crown", "coin"]
+
+# Reel 4 — con BONUS
+[[reels]]
+strip = ["gem", "crown", "coin", "chest", "coin", "gem", "BONUS", "coin", "crown", "gem", "coin", "chest", "coin", "gem", "crown"]
+
+[paytable.coin]
+"3" = "2.00"
+"4" = "7.00"
+"5" = "20.00"
+
+[paytable.gem]
+"3" = "5.00"
+"4" = "15.00"
+"5" = "50.00"
+
+[paytable.crown]
+"3" = "12.00"
+"4" = "40.00"
+"5" = "150.00"
+
+[paytable.chest]
+"3" = "30.00"
+"4" = "120.00"
+"5" = "500.00"
+
+[[paylines]]
+name = "row_0"
+rows = [0, 0, 0, 0, 0]
+
+[[paylines]]
+name = "row_1"
+rows = [1, 1, 1, 1, 1]
+
+[[paylines]]
+name = "row_2"
+rows = [2, 2, 2, 2, 2]
+
+[[paylines]]
+name = "row_3"
+rows = [3, 3, 3, 3, 3]
+
+[[paylines]]
+name = "row_4"
+rows = [4, 4, 4, 4, 4]
