@@ -23,45 +23,45 @@ is_scatter = false
 is_wild = false
 is_scatter = true
 
-# Reel 0 — con BONUS
+# Reel 0 — con BONUS, 1 chest
 [[reels]]
-strip = ["coin", "gem", "crown", "coin", "chest", "BONUS", "coin", "gem", "crown", "coin", "gem", "chest", "coin", "crown", "gem"]
+strip = ["coin", "gem", "crown", "coin", "chest", "BONUS", "coin", "gem", "crown", "coin", "gem", "coin", "coin", "crown", "gem"]
 
-# Reel 1 — sin BONUS
+# Reel 1 — sin BONUS, 1 chest
 [[reels]]
-strip = ["gem", "coin", "crown", "coin", "gem", "chest", "coin", "crown", "gem", "coin", "chest", "gem", "crown", "coin", "coin"]
+strip = ["gem", "coin", "crown", "coin", "gem", "coin", "coin", "crown", "gem", "coin", "chest", "gem", "crown", "coin", "coin"]
 
-# Reel 2 — con BONUS
+# Reel 2 — con BONUS, 1 chest
 [[reels]]
-strip = ["crown", "coin", "gem", "BONUS", "chest", "coin", "gem", "crown", "coin", "chest", "gem", "coin", "crown", "coin", "gem"]
+strip = ["crown", "coin", "gem", "BONUS", "coin", "gem", "coin", "crown", "coin", "chest", "gem", "coin", "crown", "coin", "gem"]
 
-# Reel 3 — sin BONUS
+# Reel 3 — sin BONUS, 1 chest
 [[reels]]
-strip = ["coin", "crown", "gem", "coin", "chest", "gem", "coin", "crown", "coin", "gem", "chest", "coin", "gem", "crown", "coin"]
+strip = ["coin", "crown", "gem", "coin", "chest", "gem", "coin", "crown", "coin", "gem", "coin", "coin", "gem", "crown", "coin"]
 
-# Reel 4 — con BONUS
+# Reel 4 — con BONUS, 1 chest
 [[reels]]
-strip = ["gem", "crown", "coin", "chest", "coin", "gem", "BONUS", "coin", "crown", "gem", "coin", "chest", "coin", "gem", "crown"]
+strip = ["gem", "crown", "coin", "chest", "coin", "gem", "BONUS", "coin", "crown", "gem", "coin", "coin", "coin", "gem", "crown"]
 
 [paytable.coin]
-"3" = "2.00"
-"4" = "7.00"
-"5" = "20.00"
+"3" = "1.00"
+"4" = "4.00"
+"5" = "12.00"
 
 [paytable.gem]
-"3" = "5.00"
+"3" = "4.00"
 "4" = "15.00"
-"5" = "50.00"
+"5" = "60.00"
 
 [paytable.crown]
-"3" = "12.00"
-"4" = "40.00"
-"5" = "150.00"
+"3" = "15.00"
+"4" = "50.00"
+"5" = "200.00"
 
 [paytable.chest]
-"3" = "30.00"
-"4" = "120.00"
-"5" = "500.00"
+"3" = "80.00"
+"4" = "400.00"
+"5" = "2500.00"
 
 [[paylines]]
 name = "row_0"

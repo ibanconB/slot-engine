@@ -29,7 +29,7 @@ from slot_engine.server.dto import (
     SpinResponseDTO,
     StepDTO,
     TransactionDTO,
-    WalletDTO,
+    WalletDTO, RoundDTO,
 )
 from slot_engine.wallet import (
     InsufficientFundsError,
@@ -118,6 +118,38 @@ def _transaction_to_dto(tx: Transaction) -> TransactionDTO:
         timestamp=tx.timestamp.isoformat(),
         metadata=dict(tx.metadata),
     )
+
+def _play_to_round_dto(result: PlayResult, *, kind: str) -> "RoundDTO":
+    return RoundDTO(
+        kind=kind,
+        steps=tuple(_step_to_dto(step) for step in result.steps),
+        total_payout=result.total_payout,
+        is_winning=result.is_winning,
+        free_spins_triggered=result.free_spins_triggered,
+    )
+
+
+def _settle(
+    result: PlayResult,
+    wallet_store: WalletStore,
+    fs_store: FreeSpinsStore,
+    player_id: str,
+    game_name: str,
+    *,
+    was_free: bool,
+) -> None:
+    """Apply a play's effects: credit win + grant any triggered FS."""
+    if result.total_payout > 0:
+        credit_win(
+            wallet_store,
+            player_id,
+            result.total_payout,
+            metadata={"game": game_name, "was_free_spin": str(was_free)},
+        )
+    if result.free_spins_triggered > 0:
+        grant_free_spins(
+            fs_store, player_id, game_name, result.free_spins_triggered
+        )
 
 
 # --- Wallet routes ----------------------------------------------------------
@@ -211,7 +243,7 @@ def grant_free_spins_endpoint(
 @app.post(
     "/games/{game_name}/spin",
     response_model=SpinResponseDTO,
-    summary="Spin: uses a free spin if available, otherwise pays from wallet",
+    summary="Play a full round: initial spin + all triggered free spins",
 )
 def spin(
     game_name: str,
@@ -225,15 +257,16 @@ def spin(
 
     config = load_game_config(path)
     game = Game.from_config(config)
+    engine = game.create_engine(rng=SecureRng())
 
-    # Decide: free spin or paid?
-    available_fs = peek_free_spins(fs_store, body.player_id, game_name)
-    was_free_spin = available_fs > 0
+    rounds: list[RoundDTO] = []
+    total_bet = Decimal("0")
 
-    if was_free_spin:
-        use_one_free_spin(fs_store, body.player_id, game_name)
-        total_bet = Decimal("0")
-    else:
+    # Decide: does the player start with FS pending or pay?
+    has_pending_fs = peek_free_spins(fs_store, body.player_id, game_name) > 0
+
+    if not has_pending_fs:
+        # Initial paid spin
         if body.bet_per_line is None or body.bet_per_line <= 0:
             raise HTTPException(
                 status_code=400,
@@ -259,37 +292,29 @@ def spin(
                 ),
             )
 
-    # Play
-    engine = game.create_engine(rng=SecureRng())
-    result = engine.play()
+        result = engine.play()
+        rounds.append(_play_to_round_dto(result, kind="paid"))
+        _settle(result, wallet_store, fs_store, body.player_id, game_name, was_free=False)
 
-    # Credit win if any
-    if result.total_payout > 0:
-        credit_win(
-            wallet_store,
-            body.player_id,
-            result.total_payout,
-            metadata={
-                "game": game_name,
-                "was_free_spin": str(was_free_spin),
-            },
-        )
+    # Auto-drain any pending FS (pre-existing or just triggered)
+    while peek_free_spins(fs_store, body.player_id, game_name) > 0:
+        use_one_free_spin(fs_store, body.player_id, game_name)
+        result = engine.play()
+        rounds.append(_play_to_round_dto(result, kind="free"))
+        _settle(result, wallet_store, fs_store, body.player_id, game_name, was_free=True)
 
-    # Grant any free spins triggered by this play
-    if result.free_spins_triggered > 0:
-        grant_free_spins(
-            fs_store, body.player_id, game_name, result.free_spins_triggered
-        )
-
-    fs_remaining = peek_free_spins(fs_store, body.player_id, game_name)
-    play_dto = _result_to_dto(result, game)
+    total_payout = sum(
+        (r.total_payout for r in rounds),
+        start=Decimal("0"),
+    )
     balance_after = wallet_store.get_or_create_wallet(body.player_id).balance
 
     return SpinResponseDTO(
-        **play_dto.model_dump(),
+        game=game.name,
+        engine=game.engine_name,
+        rounds=tuple(rounds),
         bet=total_bet,
+        total_payout=total_payout,
         balance_after=balance_after,
-        was_free_spin=was_free_spin,
-        free_spins_triggered=result.free_spins_triggered,
-        free_spins_remaining=fs_remaining,
+        free_spins_remaining=peek_free_spins(fs_store, body.player_id, game_name),
     )

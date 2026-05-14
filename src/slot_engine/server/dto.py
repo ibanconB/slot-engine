@@ -90,18 +90,32 @@ class GrantFreeSpinsRequestDTO(StrictDTO):
 class SpinRequestDTO(StrictDTO):
     """Body for POST /games/{name}/spin.
 
-    bet_per_line is optional: if the player has free spins for this game,
-    the spin is free and bet_per_line is ignored. If no free spins available,
-    bet_per_line must be > 0.
+    bet_per_line is optional. If the player has free spins for the game,
+    they're auto-played (no bet). Otherwise bet_per_line must be > 0.
     """
     player_id: str
     bet_per_line: Decimal | None = None
 
 
-class SpinResponseDTO(PlayResponseDTO):
-    """Response for POST /games/{name}/spin: play result + wallet + FS effect."""
-    bet: Decimal
-    balance_after: Decimal
-    was_free_spin: bool
+class RoundDTO(StrictDTO):
+    """One play within a spin round.
+
+    kind: "paid" if the player paid for this play, "free" if it was a free spin.
+    steps: one or many (cascade games can have multiple steps per play).
+    free_spins_triggered: how many FS this specific play awarded (re-trigger info).
+    """
+    kind: str
+    steps: tuple[StepDTO, ...]
+    total_payout: Decimal
+    is_winning: bool
     free_spins_triggered: int
-    free_spins_remaining: int
+
+class SpinResponseDTO(StrictDTO):
+    """Response for POST /games/{name}/spin: full round (initial + all FS)."""
+    game: str
+    engine: str
+    rounds: tuple[RoundDTO, ...]
+    bet: Decimal                  # what the player paid (0 if started in FS mode)
+    total_payout: Decimal         # sum across all rounds
+    balance_after: Decimal
+    free_spins_remaining: int     # always 0 after auto-drain (kept for clarity)

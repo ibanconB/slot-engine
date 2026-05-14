@@ -25,7 +25,7 @@ from slot_engine.game import Game
 from slot_engine.rng import RandomNumberGenerator
 
 _SCATTERS_TO_TRIGGER = 3
-_FREE_SPINS_AWARDED = 8
+_FREE_SPINS_AWARDED = 6
 
 def _find_scatter_symbol(game: Game) -> Symbol:
     """Return the single scatter symbol of the game.

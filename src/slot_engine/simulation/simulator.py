@@ -21,7 +21,13 @@ class Simulator:
     rng: RandomNumberGenerator
 
     def run(self, num_spins: int) -> SimulationResult:
-        """Execute N plays of a game and return aggregated metrics"""
+        """Execute `num_spins` paid plays and return aggregated metrics.
+
+        Each "spin" here is one PAID round. Free spins triggered during
+        a round are played automatically (no extra bet) and their payouts
+        contribute to total_payout. Re-triggers chain naturally.
+        Total bet only counts paid spins.
+        """
         if num_spins <= 0:
             raise ValueError(f"num_spins must be > 0, got {num_spins}")
 
@@ -33,13 +39,26 @@ class Simulator:
         max_win = Decimal("0")
 
         for _ in range(num_spins):
+            round_payout = Decimal("0")
+            fs_remaining = 0
+
+            # Initial paid spin
             result = engine.play()
-            payout = result.total_payout
-            total_payout += payout
-            if payout > 0:
+            round_payout += result.total_payout
+            fs_remaining += result.free_spins_triggered
+
+            # Play any triggered free spins (no bet); allow re-triggers
+            while fs_remaining > 0:
+                fs_remaining -= 1
+                fs_result = engine.play()
+                round_payout += fs_result.total_payout
+                fs_remaining += fs_result.free_spins_triggered
+
+            total_payout += round_payout
+            if round_payout > 0:
                 num_winning_spins += 1
-                if payout > max_win:
-                    max_win = payout
+                if round_payout > max_win:
+                    max_win = round_payout
 
         total_bet = Decimal(num_spins) * Decimal(num_paylines)
 
